@@ -10,6 +10,11 @@ You can use `loadfile("spaghetti-lite/loader.lua")()` with no arguments if you i
 
 ## usage
 
+Type `loadfile("spaghetti-lite/init.lua")(x, y, "path.to.init", [param1], [param2])` in tpt console, where (`x`, `y`) are the coordinates of the **top-left** corner of the output. `param1` and `param2`) are [build parameters](#params).
+This command automatically calls `loader.lua` so you don't have to call it as long as spaghetti-lite is in the default path.
+
+### old method
+
 Type `loadfile("spaghetti-lite/plot.lua")().create_parts(x, y, loadfile("path/to/init.lua")().build(params))` in tpt console, where (`x`, `y`) are the coordinates of the **top-left** corner of the output and `params` are [build parameters](#params). `Generated` files are in most cases named `generated.lua` or `init.lua`, but spaghetti-lite ships also with `r2_adapter.lua` and `termination.lua`.\
 If you used `loader.lua`, you can also use the shorter version:\
 `require("plot").create_parts(x, y, require("path.to.init").build(params))`.\
