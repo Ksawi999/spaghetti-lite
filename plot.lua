@@ -71,21 +71,20 @@ local function create_parts_(x, y, parts_in, debug)
 	end
 	do
 		local new_parts = {}
-		local parts_by_pos = {}
+		local part_state = {}
 		local function xy_key(x, y)
 			return y * sim.XRES + x
 		end
 		for _, part in ipairs(parts) do
 			local key = xy_key(part.x, part.y)
-			local insert = true
-			if parts_by_pos[key] then
-				if part.unstack then
-					insert = false
-				end
-			else
-				parts_by_pos[key] = part
+			if not part.unstack then
+				part_state[key] = "strong"
 			end
-			if insert then
+		end
+		for _, part in ipairs(parts) do
+			local key = xy_key(part.x, part.y)
+			if not part.unstack or part_state[key] ~= "strong" then
+				part_state[key] = "strong"
 				table.insert(new_parts, part)
 			end
 		end
@@ -109,6 +108,23 @@ local function create_parts_(x, y, parts_in, debug)
 	local function xy_key_back(k)
 		return k % sim.XRES, math.floor(k / sim.XRES)
 	end
+	do
+		local to_freeze = {}
+		for i = 1, #parts do
+			local x, y = math.floor(parts[i].x / sim.CELL), math.floor(parts[i].y / sim.CELL)
+			to_freeze[xy_key(x, y)] = true
+		end
+		for i = 1, #parts do
+			if not parts[i].freezable then
+				local x, y = math.floor(parts[i].x / sim.CELL), math.floor(parts[i].y / sim.CELL)
+				to_freeze[xy_key(x, y)] = nil
+			end
+		end
+		for key in audited_pairs(to_freeze) do
+			local x, y = xy_key_back(key)
+			sim.createWalls(x * sim.CELL, y * sim.CELL, 1, 1, sim.walls.DEFAULT_WL_STASIS)
+		end
+	end
 	local count_at = {}
 	for i = 1, #parts do
 		if debug and parts[i].print_index then
@@ -121,7 +137,7 @@ local function create_parts_(x, y, parts_in, debug)
 			end
 		end
 		local key = xy_key(parts[i].x, parts[i].y)
-		count_at[key] = (count_at[key] or 0) + 1
+		if parts[i].type ~= pt.PHOT and parts[i].type ~= pt.GRVT and parts[i].type ~= pt.PROT and parts[i].type ~= pt.ELEC and parts[i].type ~= pt.NEUT then count_at[key] = (count_at[key] or 0) + 1 end
 	end
 	for key, value in audited_pairs(count_at) do
 		if value > 5 then
